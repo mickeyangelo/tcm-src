@@ -1,0 +1,304 @@
+import React, { useState, useEffect, useContext } from 'react';
+import axios from 'axios';
+import Modal from 'react-modal';
+import AuthContext from './AuthContext';
+
+Modal.setAppElement('#root'); // Required for accessibility
+
+  const LibraryExplorer = () => {
+  const { user } = useContext(AuthContext);
+  const [libraries, setLibraries] = useState([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [newLibraryName, setNewLibraryName] = useState('');
+  const [selectedLibrary, setSelectedLibrary] = useState(null);
+  const [books, setBooks] = useState([]);
+  const [selectedBook, setSelectedBook] = useState(null);
+  const [sections, setSections] = useState([]);
+  const [selectedSection, setSelectedSection] = useState(null);
+  const [chapters, setChapters] = useState([]);
+  const [selectedChapter, setSelectedChapter] = useState(null);
+  const [acts, setActs] = useState([]);
+  const [selectedAct, setSelectedAct] = useState(null);
+  const [parentActions, setParentActions] = useState([]);
+  const [selectedParentAction, setSelectedParentAction] = useState(null);
+  const [actions, setActions] = useState([]);
+
+  useEffect(() => {
+  console.log("🔄 useEffect triggered! Checking user...");
+
+  if (!user) {
+    console.log("❗ No user detected. Using dummy token...");
+    const dummyUser = { token: "dummy-token-123" };
+
+    console.log("✅ Dummy user set:", dummyUser);
+    fetchLibraries(dummyUser); // Fetch libraries **without setting user**
+  } else {
+    console.log("✅ User exists. Fetching libraries...");
+    fetchLibraries(user);
+  }
+}, [user]); // Runs when `user` changes
+
+
+ const fetchLibraries = async (authUser) => {
+  console.log("🔹 Starting fetchLibraries...");
+
+  if (!authUser || !authUser.token) {
+    console.error("❌ No valid user token found. Skipping fetch.");
+    return;
+  }
+
+  console.log("🟢 Fetching libraries with token:", authUser.token);
+
+  try {
+    const response = await axios.get('http://localhost:5000/api/libraries', {
+      headers: { Authorization: `Bearer ${authUser.token}` }
+    });
+
+    console.log("✅ Raw API Response:", response);
+
+    if (!response.data || !Array.isArray(response.data)) {
+      console.error("❌ Unexpected API response format:", response.data);
+      return;
+    }
+
+    console.log("📌 Libraries Received:", response.data);
+
+    setLibraries([...response.data]); // Update state
+
+    console.log("✅ State Updated: Libraries set in React state!");
+
+  } catch (err) {
+    console.error("❌ Error fetching libraries:", err);
+  }
+};
+
+  
+   const handleAddLibrary = async (e) => {
+    e.preventDefault();
+    try {
+      await axios.post('http://localhost:5000/api/libraries', 
+        { name: newLibraryName }, 
+        { headers: { Authorization: `Bearer ${user.token}` } }
+      );
+      setNewLibraryName('');
+      setIsModalOpen(false);
+      fetchLibraries(); // Refresh the list after adding
+    } catch (err) {
+      console.error('Error adding library:', err);
+    }
+  };
+  
+
+  const fetchBooks = (libraryId) => {
+    setSelectedLibrary(libraryId);
+    setSelectedBook(null);
+    setBooks([]);
+    setSections([]);
+    setChapters([]);
+    setActs([]);
+    setParentActions([]);
+    setActions([]);
+
+    axios.get(`http://localhost:5000/api/libraries/${libraryId}/books`, {
+      headers: { Authorization: `Bearer ${user.token}` }
+    })
+    .then(res => setBooks(res.data))
+    .catch(err => console.error('Error fetching books:', err));
+  };
+
+  const fetchSections = (bookId) => {
+    setSelectedBook(bookId);
+    setSelectedSection(null);
+    setSections([]);
+    setChapters([]);
+    setActs([]);
+    setParentActions([]);
+    setActions([]);
+
+    axios.get(`http://localhost:5000/api/books/${bookId}/sections`, {
+      headers: { Authorization: `Bearer ${user.token}` }
+    })
+    .then(res => setSections(res.data))
+    .catch(err => console.error('Error fetching sections:', err));
+  };
+
+  const fetchChapters = (sectionId) => {
+    setSelectedSection(sectionId);
+    setSelectedChapter(null);
+    setChapters([]);
+    setActs([]);
+    setParentActions([]);
+    setActions([]);
+
+    axios.get(`http://localhost:5000/api/sections/${sectionId}/chapters`, {
+      headers: { Authorization: `Bearer ${user.token}` }
+    })
+    .then(res => setChapters(res.data))
+    .catch(err => console.error('Error fetching chapters:', err));
+  };
+
+  const fetchActs = (chapterId) => {
+    setSelectedChapter(chapterId);
+    setSelectedAct(null);
+    setActs([]);
+    setParentActions([]);
+    setActions([]);
+
+    axios.get(`http://localhost:5000/api/chapters/${chapterId}/acts`, {
+      headers: { Authorization: `Bearer ${user.token}` }
+    })
+    .then(res => setActs(res.data))
+    .catch(err => console.error('Error fetching acts:', err));
+  };
+
+  const fetchParentActions = (actId) => {
+    setSelectedAct(actId);
+    setSelectedParentAction(null);
+    setParentActions([]);
+    setActions([]);
+
+    axios.get(`http://localhost:5000/api/acts/${actId}/parent-actions`, {
+      headers: { Authorization: `Bearer ${user.token}` }
+    })
+    .then(res => setParentActions(res.data))
+    .catch(err => console.error('Error fetching parent actions:', err));
+  };
+
+  const fetchActions = (parentActionId) => {
+    setSelectedParentAction(parentActionId);
+    setActions([]);
+
+    axios.get(`http://localhost:5000/api/parent-actions/${parentActionId}/actions`, {
+      headers: { Authorization: `Bearer ${user.token}` }
+    })
+    .then(res => setActions(res.data))
+    .catch(err => console.error('Error fetching actions:', err));
+  };
+
+    return (
+    <div>
+      <h2>Library Explorer</h2>
+
+      {/* 📌 Button to Open Modal */}
+      <button onClick={() => setIsModalOpen(true)}>Add Library</button>
+
+      {/* 📌 Library List */}
+      <h3>Libraries</h3>
+	  {console.log("Current Libraries State:", libraries)} {/* 🛠 Debug output */}
+      {console.log("📌 Rendering Libraries:", libraries)} {/* Debugging output */}
+
+    <ul>
+  {libraries.length > 0 ? (
+    libraries.map(lib => (
+      <li key={lib.id} onClick={() => fetchBooks(lib.id)}>
+        {lib.library_name} {/* ✅ Use the correct property name */}
+      </li>
+    ))
+  ) : (
+    <p> No libraries found. Try adding one!</p>
+  )}
+</ul>
+
+      {/* 📌 Books Section */}
+      {selectedLibrary && (
+        <div>
+          <h3>Books</h3>
+          <ul>
+            {books.map(book => (
+              <li key={book.id} onClick={() => fetchSections(book.id)}>
+                {book.name}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {/* 📌 Sections */}
+      {selectedBook && (
+        <div>
+          <h3>Sections</h3>
+          <ul>
+            {sections.map(section => (
+              <li key={section.id} onClick={() => fetchChapters(section.id)}>
+                {section.name}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {/* 📌 Chapters */}
+      {selectedSection && (
+        <div>
+          <h3>Chapters</h3>
+          <ul>
+            {chapters.map(chapter => (
+              <li key={chapter.id} onClick={() => fetchActs(chapter.id)}>
+                {chapter.name}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {/* 📌 Acts */}
+      {selectedChapter && (
+        <div>
+          <h3>Acts</h3>
+          <ul>
+            {acts.map(act => (
+              <li key={act.id} onClick={() => fetchParentActions(act.id)}>
+                {act.name}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {/* 📌 Parent Actions */}
+      {selectedAct && (
+        <div>
+          <h3>Parent Actions</h3>
+          <ul>
+            {parentActions.map(pa => (
+              <li key={pa.id} onClick={() => fetchActions(pa.id)}>
+                {pa.name}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {/* 📌 Actions */}
+      {selectedParentAction && (
+        <div>
+          <h3>Actions</h3>
+          <ul>
+            {actions.map(action => (
+              <li key={action.id}>{action.description}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {/* 📌 Modal for Adding a New Library */}
+      <Modal isOpen={isModalOpen} onRequestClose={() => setIsModalOpen(false)} className="modal">
+        <h2>Add New Library</h2>
+        <form onSubmit={handleAddLibrary}>
+          <input 
+            type="text" 
+            placeholder="Library Name" 
+            value={newLibraryName}
+            onChange={(e) => setNewLibraryName(e.target.value)}
+            required
+          />
+          <button type="submit">Create</button>
+          <button type="button" onClick={() => setIsModalOpen(false)}>Cancel</button>
+        </form>
+      </Modal>
+    </div>
+  );
+
+};
+
+export default LibraryExplorer;
