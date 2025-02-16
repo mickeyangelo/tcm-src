@@ -89,22 +89,32 @@ Modal.setAppElement('#root'); // Required for accessibility
   };
   
 
-  const fetchBooks = (libraryId) => {
-    setSelectedLibrary(libraryId);
-    setSelectedBook(null);
-    setBooks([]);
-    setSections([]);
-    setChapters([]);
-    setActs([]);
-    setParentActions([]);
-    setActions([]);
+const fetchBooks = (libraryId) => {
+  console.log("📌 Fetching books for library:", libraryId);
 
-    axios.get(`http://localhost:5000/api/libraries/${libraryId}/books`, {
-      headers: { Authorization: `Bearer ${user.token}` }
-    })
-    .then(res => setBooks(res.data))
-    .catch(err => console.error('Error fetching books:', err));
-  };
+  setSelectedLibrary(libraryId);
+  setSelectedBook(null);
+  setBooks([]); // ✅ Reset books state before fetching new ones
+  setSections([]);
+  setChapters([]);
+  setActs([]);
+  setParentActions([]);
+  setActions([]);
+
+  axios.get(`http://localhost:5000/api/libraries/${libraryId}/books`, {
+    headers: { Authorization: `Bearer ${user.token}` }
+  })
+  .then(res => {
+    console.log("✅ Books Received:", res.data);
+
+    // ✅ Ensure books are only from the selected library
+    const filteredBooks = res.data.filter(book => book.library_id === libraryId);
+    setBooks(filteredBooks);
+    console.log("📌 Updated Books State:", filteredBooks);
+  })
+  .catch(err => console.error('❌ Error fetching books:', err));
+};
+
 
   const fetchSections = (bookId) => {
     setSelectedBook(bookId);
@@ -199,8 +209,8 @@ Modal.setAppElement('#root'); // Required for accessibility
   )}
 </ul>
 
-      {/* 📌 Books Section */}
-      {selectedLibrary && (
+{/* 📌 Books Section */}
+		  { /*{selectedLibrary && (
         <div>
           <h3>Books</h3>
           <ul>
@@ -211,7 +221,28 @@ Modal.setAppElement('#root'); // Required for accessibility
             ))}
           </ul>
         </div>
-      )}
+		  )}*/}
+	  
+
+{selectedLibrary && books.length > 0 && (
+  <div>
+    <h3>Books</h3>
+		{console.log("Current Books State:", books)} {/* 🛠 Debug output */}
+		{console.log("📌 Rendering Books:", books)} {/* Debugging output */}
+    <ul>
+      {books.map(book => (
+        <li key={book.id} onClick={() => fetchSections(book.id)}>
+          {book.book_title} {/* ✅ Ensure correct property name */}
+        </li>
+      ))}
+    </ul>
+  </div>
+)}
+
+{/* Show message if library is selected but has no books */}
+{selectedLibrary && books.length === 0 && (
+  <p> No books found for this library. Try adding one!</p>
+)}
 
       {/* 📌 Sections */}
       {selectedBook && (
