@@ -210,20 +210,6 @@ const fetchBooks = (libraryId) => {
 </ul>
 
 {/* 📌 Books Section */}
-		  { /*{selectedLibrary && (
-        <div>
-          <h3>Books</h3>
-          <ul>
-            {books.map(book => (
-              <li key={book.id} onClick={() => fetchSections(book.id)}>
-                {book.name}
-              </li>
-            ))}
-          </ul>
-        </div>
-		  )}*/}
-	  
-
 {selectedLibrary && books.length > 0 && (
   <div>
     <h3>Books</h3>
@@ -244,73 +230,103 @@ const fetchBooks = (libraryId) => {
   <p> No books found for this library. Try adding one!</p>
 )}
 
-      {/* 📌 Sections */}
-      {selectedBook && (
-        <div>
-          <h3>Sections</h3>
-          <ul>
-            {sections.map(section => (
-              <li key={section.id} onClick={() => fetchChapters(section.id)}>
-                {section.name}
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
+      {/* 📌 Sections Section */}
+{selectedBook && sections.length > 0 && (
+  <div>
+    <h3>Sections</h3>
+    <ul>
+      {sections.map(section => (
+        <li key={section.id} onClick={() => fetchChapters(section.id)}>
+          {section.name} {/* ✅ Ensure correct property name */}
+        </li>
+      ))}
+    </ul>
+  </div>
+)}
 
-      {/* 📌 Chapters */}
-      {selectedSection && (
-        <div>
-          <h3>Chapters</h3>
-          <ul>
-            {chapters.map(chapter => (
-              <li key={chapter.id} onClick={() => fetchActs(chapter.id)}>
-                {chapter.name}
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
+{/* Show message if book is selected but has no sections */}
+{selectedBook && sections.length === 0 && (
+  <p> No sections found for this book. Try adding one!</p>
+)}
 
-      {/* 📌 Acts */}
-      {selectedChapter && (
-        <div>
-          <h3>Acts</h3>
-          <ul>
-            {acts.map(act => (
-              <li key={act.id} onClick={() => fetchParentActions(act.id)}>
-                {act.name}
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
 
-      {/* 📌 Parent Actions */}
-      {selectedAct && (
-        <div>
-          <h3>Parent Actions</h3>
-          <ul>
-            {parentActions.map(pa => (
-              <li key={pa.id} onClick={() => fetchActions(pa.id)}>
-                {pa.name}
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
+{/* 📌 Chapters Section */}
+{selectedSection && chapters.length > 0 && (
+  <div>
+    <h3>Chapters</h3>
+    <ul>
+      {chapters.map(chapter => (
+        <li key={chapter.id} onClick={() => fetchActs(chapter.id)}>
+          {chapter.name} {/* ✅ Ensure correct property name */}
+        </li>
+      ))}
+    </ul>
+  </div>
+)}
 
-      {/* 📌 Actions */}
-      {selectedParentAction && (
-        <div>
-          <h3>Actions</h3>
-          <ul>
-            {actions.map(action => (
-              <li key={action.id}>{action.description}</li>
-            ))}
-          </ul>
-        </div>
-      )}
+{/* Show message if section is selected but has no chapters */}
+{selectedSection && chapters.length === 0 && (
+  <p> No chapters found for this section. Try adding one!</p>
+)}
+
+
+{/* 📌 Acts Section */}
+{selectedChapter && acts.length > 0 && (
+  <div>
+    <h3>Acts</h3>
+    <ul>
+      {acts.map(act => (
+        <li key={act.id} onClick={() => fetchParentActions(act.id)}>
+          {act.name} {/* ✅ Ensure correct property name */}
+        </li>
+      ))}
+    </ul>
+  </div>
+)}
+
+{/* Show message if chapter is selected but has no acts */}
+{selectedChapter && acts.length === 0 && (
+  <p> No acts found for this chapter. Try adding one!</p>
+)}
+
+
+{/* 📌 Parent Actions Section */}
+{selectedAct && parentActions.length > 0 && (
+  <div>
+    <h3>Parent Actions</h3>
+    <ul>
+      {parentActions.map(pa => (
+        <li key={pa.id} onClick={() => fetchActions(pa.id)}>
+          {pa.name} {/* ✅ Ensure correct property name */}
+        </li>
+      ))}
+    </ul>
+  </div>
+)}
+
+{/* Show message if act is selected but has no parent actions */}
+{selectedAct && parentActions.length === 0 && (
+  <p> No parent actions found for this act. Try adding one!</p>
+)}
+
+{/* 📌 Actions Section */}
+{selectedParentAction && actions.length > 0 && (
+  <div>
+    <h3>Actions</h3>
+    <ul>
+      {actions.map(action => (
+        <li key={action.id}>
+          {action.description} {/* ✅ Ensure correct property name */}
+        </li>
+      ))}
+    </ul>
+  </div>
+)}
+
+{/* Show message if parent action is selected but has no actions */}
+{selectedParentAction && actions.length === 0 && (
+  <p> No actions found for this parent action. Try adding one!</p>
+)}
 
       {/* 📌 Modal for Adding a New Library */}
       <Modal isOpen={isModalOpen} onRequestClose={() => setIsModalOpen(false)} className="modal">
